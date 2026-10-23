@@ -1,0 +1,39 @@
+ZORROS DEL ASFALTO — LOGIN PERSONALIZADO PARA NETLIFY
+=====================================================
+
+QUÉ INCLUYE
+- index.html: pantalla de ingreso personalizada en negro y naranja.
+- app.html: tu aplicación original de asistencia, conservada, con botón CERRAR SESIÓN.
+- logo-zorros.png: el logo original extraído de tu aplicación y compartido por el login y la app.
+- netlify/edge-functions/protect.js: valida credenciales en el servidor, firma la sesión y protege las páginas; también procesa /login y /logout.
+- netlify.toml: configura la publicación y la Edge Function.
+
+IMPORTANTE
+La pantalla de ingreso no guarda ni compara contraseñas en el navegador. Las credenciales se validan en la Edge Function de Netlify. La sesión se guarda en una cookie HttpOnly, Secure y SameSite=Lax, con vencimiento a las 8 horas.
+
+ANTES DE PUBLICAR: CREÁ ESTAS 3 VARIABLES EN NETLIFY
+En Netlify: tu sitio > Site configuration (o Project configuration) > Environment variables.
+Agregá:
+1. APP_LOGIN_USER = el usuario que quieras usar
+2. APP_LOGIN_PASSWORD = una contraseña larga, única y difícil de adivinar
+3. APP_SESSION_SECRET = una clave aleatoria larga (idealmente 32 caracteres o más)
+
+No pongas las contraseñas en index.html ni las subas a Git. Cargalas solo como variables de entorno de Netlify. Luego hacé un nuevo deploy para que se apliquen.
+
+RECOMENDACIÓN DE PUBLICACIÓN
+Para usar Edge Functions, recomendamos conectar un repositorio GitHub con Netlify (deploy automático). El ZIP es la carpeta del sitio; descomprimilo y subí su contenido a un repositorio nuevo, o usá Netlify CLI. Un deploy manual por arrastrar y soltar no es la opción recomendada para este caso porque hay que publicar también la Edge Function.
+
+PASOS CON GITHUB + NETLIFY
+1. Descomprimí este ZIP.
+2. En GitHub, creá un repositorio nuevo y vacío para el sitio.
+3. Subí TODOS los archivos y carpetas de esta carpeta (no subas el ZIP dentro del repositorio).
+4. En Netlify, elegí Add new site / Import an existing project y conectá ese repositorio.
+5. Build command: dejalo vacío. Publish directory: .
+6. En variables de entorno de Netlify, cargá las tres variables de arriba.
+7. Publicá el sitio y probá: la página principal debe mostrar el login; una visita directa a /app.html sin iniciar sesión debe quedar bloqueada.
+8. Probá el usuario y contraseña, y también el botón CERRAR SESIÓN.
+
+NOTAS
+- No compartas las credenciales por el repositorio.
+- Si la app usa datos externos, sus permisos y seguridad dependen también de ese servicio.
+- Esta carpeta protege el acceso a la interfaz; no reemplaza reglas de seguridad en servicios externos que la aplicación pueda consultar.

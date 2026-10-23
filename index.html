@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121212">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Ingresar | Zorros del Asfalto</title>
+  <style>
+    :root { color-scheme: dark; --orange:#ff6600; --black:#121212; --panel:#1b1b1b; --muted:#a9a9a9; }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; margin:0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif; color:#fff;
+      background: radial-gradient(ellipse at 50% 0%, #3a1a08 0%, #171717 48%, #090909 100%);
+      display:grid; place-items:center; padding:24px; overflow-x:hidden;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none; opacity:.12;
+      background-image:linear-gradient(135deg, transparent 48%, var(--orange) 49%, transparent 50%);
+      background-size:42px 42px; mask-image:linear-gradient(to bottom, black, transparent 80%);
+    }
+    .wrap { width:min(100%, 420px); position:relative; }
+    .card {
+      background:rgba(24,24,24,.96); border:1px solid #393939; border-top:4px solid var(--orange);
+      border-radius:22px; padding:34px 30px 28px; box-shadow:0 22px 70px rgba(0,0,0,.55);
+    }
+    .brand { text-align:center; margin-bottom:28px; }
+    .mark {
+      width:100%; margin:0 auto 22px; border-radius:10px; overflow:hidden;
+      background:var(--orange); box-shadow:0 8px 26px rgba(255,102,0,.12);
+    }
+    .mark img { display:block; width:100%; height:auto; object-fit:contain; }
+    .brand h1 { font-size:clamp(22px, 6vw, 28px); letter-spacing:1.1px; line-height:1.05; margin:0; font-weight:950; }
+    .brand h1 span { color:var(--orange); }
+    .brand p { margin:10px 0 0; font-size:11px; letter-spacing:3px; color:#bdbdbd; font-weight:800; }
+    .eyebrow { color:var(--orange); font-size:11px; letter-spacing:2px; font-weight:900; text-transform:uppercase; margin:0 0 8px; }
+    h2 { font-size:23px; margin:0 0 8px; }
+    .intro { color:#bdbdbd; font-size:14px; line-height:1.5; margin:0 0 24px; }
+    label { display:block; font-size:12px; font-weight:800; margin:0 0 8px; color:#e5e5e5; }
+    .field { margin-bottom:17px; }
+    input {
+      width:100%; padding:14px 15px; border:1px solid #4b4b4b; border-radius:10px;
+      background:#101010; color:#fff; font-size:16px; outline:none; transition:border-color .15s, box-shadow .15s;
+    }
+    input:focus { border-color:var(--orange); box-shadow:0 0 0 3px rgba(255,102,0,.16); }
+    .password-wrap { position:relative; }
+    .password-wrap input { padding-right:76px; }
+    .show-pass { position:absolute; right:8px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--orange); font-weight:800; font-size:12px; cursor:pointer; padding:8px; }
+    .submit {
+      width:100%; border:0; border-radius:11px; background:var(--orange); color:#151515;
+      padding:15px 18px; font-size:14px; font-weight:950; letter-spacing:1px; cursor:pointer;
+      margin-top:5px; transition:transform .12s, filter .12s;
+    }
+    .submit:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    .submit:disabled { opacity:.65; cursor:wait; transform:none; }
+    .error { display:none; margin:0 0 17px; padding:11px 12px; border-radius:9px; border:1px solid #8c3327; background:#351713; color:#ffb6a8; font-size:13px; line-height:1.4; }
+    .foot { text-align:center; color:#777; font-size:11px; line-height:1.5; margin:18px 0 0; }
+    .shield { display:inline-flex; align-items:center; gap:7px; color:#aaa; font-size:11px; margin-top:18px; }
+    .shield svg { width:14px; height:14px; color:var(--orange); }
+    @media (max-width:420px) { body { padding:14px; } .card { padding:28px 21px 23px; border-radius:18px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card" aria-labelledby="login-title">
+      <header class="brand">
+        <div class="mark"><img src="/logo-zorros.png" alt="Logo Zorros del Asfalto"></div>
+        <h1>ZORROS <span>DEL</span><br>ASFALTO</h1>
+        <p>ASISTENCIA · EQUIPO · RUTA</p>
+      </header>
+      <p class="eyebrow">Área privada</p>
+      <h2 id="login-title">Iniciar sesión</h2>
+      <p class="intro">Ingresá con tu usuario y contraseña para acceder al sistema de asistencia.</p>
+      <div id="login-error" class="error" role="alert">Usuario o contraseña incorrectos. Revisá los datos e intentá nuevamente.</div>
+      <form method="post" action="/login" autocomplete="on">
+        <div class="field">
+          <label for="username">USUARIO</label>
+          <input id="username" name="username" type="text" placeholder="Tu usuario" autocomplete="username" required maxlength="100" autofocus>
+        </div>
+        <div class="field">
+          <label for="password">CONTRASEÑA</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" placeholder="Tu contraseña" autocomplete="current-password" required maxlength="200">
+            <button class="show-pass" type="button" id="toggle-password">VER</button>
+          </div>
+        </div>
+        <button class="submit" type="submit">INGRESAR AL SISTEMA&nbsp; ↗</button>
+      </form>
+      <div style="text-align:center"><span class="shield">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>
+        Acceso privado y protegido
+      </span></div>
+    </section>
+    <p class="foot">ZORROS DEL ASFALTO · SISTEMA DE ASISTENCIA<br>Acceso exclusivo para personas autorizadas</p>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === '1') document.getElementById('login-error').style.display = 'block';
+    if (params.get('error') === 'config') {
+      const box = document.getElementById('login-error');
+      box.textContent = 'El acceso todavía no está configurado en Netlify. Revisá las variables de entorno indicadas en LEEME.txt.';
+      box.style.display = 'block';
+    }
+    document.getElementById('toggle-password').addEventListener('click', function () {
+      const input = document.getElementById('password');
+      const reveal = input.type === 'password';
+      input.type = reveal ? 'text' : 'password';
+      this.textContent = reveal ? 'OCULTAR' : 'VER';
+    });
+  </script>
+</body>
+</html>

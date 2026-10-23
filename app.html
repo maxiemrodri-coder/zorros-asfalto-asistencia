@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zorros del Asfalto - Asistencia</title>
+    <!-- Librerías -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        /* FONDO NARANJA SÓLIDO */
+        body {
+            background-color: #ff6600;
+            color: #121212;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 80px; 
+        }
+        
+        .encabezado-marca { text-align:center; margin: 0 auto 16px; max-width: 1100px; }
+        .encabezado-marca img { display:block; width:100%; max-height:260px; object-fit:contain; margin:0 auto; }
+        .encabezado-marca h1 { border:0; margin:8px 0 0; padding:0; font-size:clamp(18px, 3vw, 30px); color:#121212; }
+        .encabezado-marca .subtitulo { margin:5px 0 14px; font-weight:900; letter-spacing:1.5px; text-transform:uppercase; font-size:clamp(14px, 2vw, 20px); }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 900;
+            color: #121212;
+            text-transform: uppercase;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            border-bottom: 4px solid #121212;
+            padding-bottom: 10px;
+        }
+
+        .input-rodada {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            background-color: #121212; 
+            color: #ff6600;
+            border: 2px solid #121212;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .input-rodada::placeholder { color: #777; font-weight: normal; }
+        
+        .btn-camara {
+            width: 100%;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            cursor: pointer;
+        }
+        #btnIniciar { background-color: #121212; color: #ff6600; border: 2px solid #121212; }
+        #btnDetener { background-color: #d32f2f; color: white; display: none; }
+
+        #reader {
+            width: 100%;
+            height: 50vh;
+            max-height: 400px;
+            border: 4px solid #121212;
+            border-radius: 8px;
+            background-color: #000;
+            margin-bottom: 15px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        #reader video {
+            object-fit: cover !important; 
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .ultimo-escaneado {
+            background-color: #121212;
+            border: 3px solid #4CAF50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+            display: none; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+        .ultimo-escaneado h3 { margin: 0; color: #4CAF50; font-size: 16px; }
+        .ultimo-escaneado p { margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: white; }
+
+        .controles-etapas {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 5px;
+        }
+        .btn-etapa {
+            background-color: #333;
+            color: #fff;
+            border: 2px solid #222;
+            padding: 10px 5px;
+            font-weight: bold;
+            border-radius: 5px;
+            flex: 1 1 30%; 
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+        .btn-etapa.activa {
+            background-color: #121212;
+            color: #ff6600;
+            border: 2px solid #ffffff;
+        }
+        
+        .btn-accion {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+        }
+        .btn-editar { background-color: #222; color: #fff; border: 1px solid #111;}
+        .btn-cerrar-etapa { background-color: #b71c1c; color: white; font-size: 16px; padding: 15px; margin-bottom: 15px;}
+        .btn-nueva-rodada { background-color: #121212; color: #aaa; margin-top: 15px;}
+        .btn-exportar { background-color: #1b5e20; color: white; font-size: 18px; padding: 15px; margin-top: 10px;}
+
+        .panel-oculto {
+            background-color: #121212;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            border: 2px solid #222;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .input-texto {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #333;
+            color: white;
+            border: 1px solid #ff6600;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .contador {
+            background-color: #121212;
+            color: #ff6600;
+            text-align: center;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+        }
+
+        .tabla-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #121212; 
+            border: 2px solid #222;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        }
+        table {
+            width: 100%;
+            min-width: 600px; 
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 10px 6px;
+            text-align: center;
+            color: #fff; 
+        }
+        th { background-color: #222; color: #ff6600; white-space: nowrap; font-weight: bold; font-size: 14px;}
+        
+        .col-nombre { 
+            width: 35%; 
+            text-align: left; 
+            font-weight: bold; 
+            color: #fff;
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-color: #555;
+        }
+        .col-nombre:active { color: #ff6600; }
+        
+        .col-hora { width: 13%; }
+        
+        .presente { background-color: #ff6600; color: #121212; font-weight: bold; }
+        .ausente { background-color: #d32f2f; color: #fff; font-weight: bold; }
+        
+        /* FOOTER REDES SOCIALES Y FIRMA */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            border-top: 2px solid #121212;
+            padding-top: 20px;
+        }
+        .redes {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .red-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #121212;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .red-item svg { width: 24px; height: 24px; }
+        .firma {
+            color: #222;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        /* --- VENTANA FLOTANTE (MODAL) --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 9999; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); 
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #121212; 
+            padding: 20px; 
+            border: 2px solid #ff6600;
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 430px; 
+            text-align: center; 
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 102, 0, 0.4);
+            position: relative;
+        }
+        .modal-close { 
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #ff6600; 
+            font-size: 30px; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+        .modal-img { 
+            width: min(72vw, 290px); 
+            height: min(72vw, 290px); 
+            object-fit: cover; 
+            border-radius: 50%; 
+            border: 4px solid #333; 
+            margin-bottom: 10px; 
+            background-color: #222;
+        }
+        .modal-nombre {
+            color: #ff6600;
+            margin: 5px 0 0 0;
+            font-size: 18px;
+            font-weight: 900;
+        }
+        .modal-apodo { color:#fff; font-size:20px; font-weight:800; margin:6px 0 10px; }
+        .modal-codigo {
+            color: #aaa;
+            margin: 5px 0 15px 0;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        .modal-qr { 
+            width: 160px; 
+            height: 160px; 
+            border: 6px solid white; 
+            border-radius: 8px; 
+            background-color: white;
+            object-fit: contain;
+        }
+        .modal-leyenda {
+            font-size: 12px;
+            color: #777;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="encabezado-marca">
+        <img src="/logo-zorros.png" alt="Zorros del Asfalto">
+        <h1>ZORROS DEL ASFALTO</h1>
+        <p class="subtitulo">PLANILLA DE ASISTENCIA A LA RODADA</p>
+    </header>
+    
+    <input type="text" id="nombreRodada" class="input-rodada" placeholder="EJ: RODADA YUNGAS JUJEÑAS - 25/10/26" oninput="guardarTitulo()">
+
+    <button id="btnIniciar" class="btn-camara">📸 ENCENDER CÁMARA</button>
+    <button id="btnDetener" class="btn-camara">🛑 APAGAR CÁMARA</button>
+
+    <div id="reader">Toca "Encender Cámara" para empezar a escanear</div>
+    
+    <!-- RESULTADO DEL ESCANEO -->
+    <div id="boxResultado" class="ultimo-escaneado">
+        <h3 id="tituloResultado">✅ ASISTENCIA REGISTRADA</h3>
+        <p id="textoResultado">-</p>
+    </div>
+    
+    <audio id="beepScan" src="https://www.soundjay.com/buttons/sounds/button-09.mp3" preload="auto"></audio>
+    <audio id="beepCierre" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+
+    <button onclick="toggleEdicion()" class="btn-accion btn-editar">✏️ Editar Nombres de Paradas</button>
+    
+    <div id="panelEdicion" class="panel-oculto">
+        <label>Etapa 1:</label><input type="text" id="inE0" class="input-texto">
+        <label>Etapa 2:</label><input type="text" id="inE1" class="input-texto">
+        <label>Etapa 3:</label><input type="text" id="inE2" class="input-texto">
+        <label>Etapa 4:</label><input type="text" id="inE3" class="input-texto">
+        <label>Etapa 5:</label><input type="text" id="inE4" class="input-texto">
+        <button onclick="guardarNombresEtapas()" class="btn-accion" style="background: #ff6600; color: #121212;">💾 Guardar Nombres</button>
+    </div>
+
+    <div class="controles-etapas">
+        <button id="btnE0" class="btn-etapa activa" onclick="setEtapa(0, 'btnE0')"></button>
+        <button id="btnE1" class="btn-etapa" onclick="setEtapa(1, 'btnE1')"></button>
+        <button id="btnE2" class="btn-etapa" onclick="setEtapa(2, 'btnE2')"></button>
+        <button id="btnE3" class="btn-etapa" onclick="setEtapa(3, 'btnE3')"></button>
+        <button id="btnE4" class="btn-etapa" onclick="setEtapa(4, 'btnE4')"></button>
+    </div>
+
+    <div class="contador" id="contadorEtapa">Escaneados en esta etapa: 0</div>
+
+    <button onclick="marcarAusentes()" class="btn-accion btn-cerrar-etapa">🔒 Cerrar Etapa Actual (Marcar Faltas)</button>
+
+    <div class="tabla-container">
+        <table id="tablaAsistencia">
+            <thead>
+                <tr>
+                    <th class="col-nombre">Aliado y Nombre</th>
+                    <th class="col-hora" id="thE0"></th>
+                    <th class="col-hora" id="thE1"></th>
+                    <th class="col-hora" id="thE2"></th>
+                    <th class="col-hora" id="thE3"></th>
+                    <th class="col-hora" id="thE4"></th>
+                </tr>
+            </thead>
+            <tbody id="tablaBody">
+            </tbody>
+        </table>
+    </div>
+
+    <button class="btn-accion btn-exportar" onclick="exportarExcelConFormato()">⬇️ Generar Excel (Backup)</button>
+    <button onclick="nuevaRodada()" class="btn-accion btn-nueva-rodada">🗑️ Iniciar Nueva Rodada (Borrar Todo)</button>
+
+    <!-- VENTANA FLOTANTE (MODAL) -->
+    <div id="modalSocio" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal()">&times;</span>
+            <img id="modalFoto" class="modal-img" src="https://cdn-icons-png.flaticon.com/512/1154/1154449.png" alt="Foto Piloto">
+            <h3 id="modalNombre" class="modal-nombre">Nombre</h3>
+            <p id="modalApodo" class="modal-apodo"></p>
+            <p id="modalCodigo" class="modal-codigo">CÓDIGO</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="redes">
+            <div class="red-item">
+                <svg viewBox="0 0 24 24" fill="#121212"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                zorros_del_asfalto
+            </div>
+            <div class="red-item">
+                <svg viewBox="0 0 24 24" fill="#121212"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
+                @zorrosdelasfalto
+            </div>
+        </div>
+        <div class="firma">CREADO POR SONIART</div>
+    </div>
+
+    <script>
+        const urlPilotos = "https://docs.google.com/spreadsheets/d/1tAWhKH6fUfmlcfFrGb3aeGyfbwLxILNIL7QC7hvDrwE/export?format=tsv";
+        const urlCopilotos = "https://docs.google.com/spreadsheets/d/1tJ01_jpJ14cf_u5d3fjbfVPV9g5_tnDbxXsIMBKUHPA/export?format=tsv";
+        
+        let sociosDb = []; 
+        let html5QrcodeScanner;
+        let etapaActual = 0; 
+        
+        let asistencia = JSON.parse(localStorage.getItem('zorros_asistencia')) || {};
+        if (Object.keys(asistencia).length > 0 && !Array.isArray(Object.values(asistencia)[0])) {
+            asistencia = {}; 
+        }
+        
+        let nombresEtapas = JSON.parse(localStorage.getItem('zorros_nombres_etapas')) || ["Partida", "Parada 1", "Parada 2", "Parada 3", "Regreso"];
+        document.getElementById('nombreRodada').value = localStorage.getItem('zorros_titulo') || '';
+
+        function guardarTitulo() { localStorage.setItem('zorros_titulo', document.getElementById('nombreRodada').value); }
+
+        function toggleEdicion() {
+            let panel = document.getElementById('panelEdicion');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                for(let i=0; i<5; i++) document.getElementById('inE'+i).value = nombresEtapas[i];
+            } else { panel.style.display = 'none'; }
+        }
+
+        function guardarNombresEtapas() {
+            for(let i=0; i<5; i++) {
+                let val = document.getElementById('inE'+i).value.trim();
+                nombresEtapas[i] = val !== '' ? val : `Etapa ${i+1}`;
+            }
+            localStorage.setItem('zorros_nombres_etapas', JSON.stringify(nombresEtapas));
+            aplicarNombresUI();
+            document.getElementById('panelEdicion').style.display = 'none';
+        }
+
+        function aplicarNombresUI() {
+            for(let i=0; i<5; i++) {
+                document.getElementById('btnE'+i).innerText = nombresEtapas[i];
+                document.getElementById('thE'+i).innerText = nombresEtapas[i];
+            }
+        }
+
+        // Convierte enlaces de Drive y extrae URLs pegadas o fórmulas IMAGE() de Sheets.
+        function extraerUrlCelda(valor) {
+            if (!valor) return "";
+            let texto = String(valor).replace(/^\uFEFF/, "").trim();
+            // Algunas celdas contienen =IMAGE("URL") o texto con la URL entre comillas.
+            const formula = texto.match(/(?:IMAGE|HYPERLINK)\s*\(\s*["']([^"']+)["']/i);
+            if (formula) texto = formula[1].trim();
+            const urlMatch = texto.match(/https?:\/\/[^\s"']+/i);
+            if (urlMatch) texto = urlMatch[0].replace(/[),;]+$/, "");
+            return texto.replace(/^['"]|['"]$/g, "").trim();
+        }
+
+        function fixDriveLink(valor) {
+            let url = extraerUrlCelda(valor);
+            if (!url) return "";
+            // Extrae el ID de formatos comunes de Google Drive.
+            let match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/) ||
+                        url.match(/\/(?:file\/d|d)\/([a-zA-Z0-9_-]+)/) ||
+                        url.match(/drive\.google\.com\/thumbnail\?id=([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                // thumbnail suele funcionar mejor que uc?export=view en elementos <img>.
+                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200`;
+            }
+            return url;
+        }
+
+        function urlImagenAlternativa(texto, size = 200) {
+            return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(texto)}`;
+        }
+
+        function buscarColumnaApodo(encabezados) {
+            return encabezados.findIndex(h => /apodo|sobrenombre|alias|nombre de ruta/i.test(String(h || '').replace(/"/g, '').trim()));
+        }
+        function valorColumnaApodo(col, indice) {
+            return indice >= 0 && col[indice] ? col[indice].replace(/"/g, '').trim() : '';
+        }
+
+        async function cargarBaseDeDatos() {
+            // Cargar Pilotos
+            try {
+                const resP = await fetch(urlPilotos);
+                const tsvP = await resP.text();
+                const filasP = tsvP.split('\n');
+                const encabezadosP = (filasP[0] || '').split('\t');
+                const colApodoP = buscarColumnaApodo(encabezadosP);
+                
+                for (let i = 1; i < filasP.length; i++) {
+                    let col = filasP[i].split('\t');
+                    if (col.length > 2) {
+                        let nombre = col[2] ? col[2].replace(/"/g, '').trim() : ""; // Nombre en Col C (2)
+                        let codigo = col.length > 21 && col[21] ? col[21].replace(/"/g, '').trim() : ""; // Código en Col V (21)
+                        let fotoUrl = col.length > 7 && col[7] ? col[7].replace(/"/g, '').trim() : ""; // Foto en Col H (7)
+                        let apodo = valorColumnaApodo(col, colApodoP);
+                        
+                        let qrUrl = "";
+                        // Intentar buscar QR en Columna X (23) o W (22)
+                        const qrX = col.length > 23 ? extraerUrlCelda(col[23]) : "";
+                        const qrW = col.length > 22 ? extraerUrlCelda(col[22]) : "";
+                        // Prioriza X, pero usa W si X está vacío o no contiene una URL.
+                        qrUrl = (qrX && /^https?:\/\//i.test(qrX)) ? qrX : qrW;
+
+                        fotoUrl = fixDriveLink(fotoUrl);
+                        qrUrl = fixDriveLink(qrUrl);
+
+                        if (nombre && codigo) { sociosDb.push({ nombre: nombre, apodo: apodo, codigo: codigo, foto: fotoUrl, qr: qrUrl, rol: 'PILOTO' }); }
+                    }
+                }
+            } catch (e) { console.error("Error Pilotos:", e); }
+
+            // Cargar Co-pilotos
+            try {
+                const resC = await fetch(urlCopilotos);
+                const tsvC = await resC.text();
+                const filasC = tsvC.split('\n');
+                const encabezadosC = (filasC[0] || '').split('\t');
+                const colApodoC = buscarColumnaApodo(encabezadosC);
+                for (let i = 1; i < filasC.length; i++) {
+                    let col = filasC[i].split('\t');
+                    if (col.length > 2) {
+                        let nombre = col[2] ? col[2].replace(/"/g, '').trim() : ""; // Nombre en Col C (2)
+                        let codigo = col.length > 3 && col[3].trim() !== '' ? col[3].replace(/"/g, '').trim() : "CO-PILOTO"; // Código en Col D (3)
+                        let fotoUrl = col.length > 7 && col[7] ? col[7].replace(/"/g, '').trim() : ""; // Foto en Col H (7)
+                        let apodo = valorColumnaApodo(col, colApodoC);
+                        let qrUrl = col.length > 14 && col[14] ? col[14].replace(/"/g, '').trim() : ""; // QR en Col O (14)
+                        
+                        fotoUrl = fixDriveLink(fotoUrl);
+                        qrUrl = fixDriveLink(qrUrl);
+
+                        if (nombre) { sociosDb.push({ nombre: nombre, apodo: apodo, codigo: codigo, foto: fotoUrl, qr: qrUrl, rol: 'CO-PILOTO' }); }
+                    }
+                }
+            } catch (e) { console.error("Error Copilotos:", e); }
+        }
+
+        // --- VENTANA FLOTANTE: FOTO, NOMBRE Y APODO ---
+        function abrirModal(idSocioTabla) {
+            const modal = document.getElementById('modalSocio');
+            const imgFoto = document.getElementById('modalFoto');
+            const txtNombre = document.getElementById('modalNombre');
+            const txtApodo = document.getElementById('modalApodo');
+            const txtCodigo = document.getElementById('modalCodigo');
+            const textoModal = String(idSocioTabla || '').toUpperCase();
+            const socioEncontrado = sociosDb
+                .filter(s => s.nombre && textoModal.includes(String(s.nombre).toUpperCase()))
+                .sort((a,b) => String(b.nombre).length - String(a.nombre).length)[0];
+            if (socioEncontrado) {
+                txtNombre.innerText = socioEncontrado.nombre;
+                txtApodo.innerText = socioEncontrado.apodo ? `“${socioEncontrado.apodo}”` : '';
+                txtApodo.style.display = socioEncontrado.apodo ? 'block' : 'none';
+                txtCodigo.innerText = socioEncontrado.rol === 'CO-PILOTO' ? 'COPILOTO' : 'PILOTO';
+                const fallback = 'https://cdn-icons-png.flaticon.com/512/1154/1154449.png';
+                imgFoto.onerror = function(){ this.onerror = null; this.src = fallback; };
+                imgFoto.src = socioEncontrado.foto || fallback;
+            } else {
+                txtNombre.innerText = idSocioTabla;
+                txtApodo.innerText = '';
+                txtApodo.style.display = 'none';
+                txtCodigo.innerText = /COPILOTO|CO-PILOTO/i.test(idSocioTabla) ? 'COPILOTO' : 'PILOTO';
+                imgFoto.onerror = null;
+                imgFoto.src = 'https://cdn-icons-png.flaticon.com/512/1154/1154449.png';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModal() { document.getElementById('modalSocio').style.display = 'none'; }
+        
+        window.onclick = function(event) {
+            let modal = document.getElementById('modalSocio');
+            if (event.target === modal) { modal.style.display = "none"; }
+        }
+
+        function extraerNombreLimpio(textoQR) {
+            let textoLimpio = textoQR;
+            if (textoQR.includes("BEGIN:VCARD") && textoQR.includes("FN:")) {
+                let lineas = textoQR.split('\n');
+                for (let linea of lineas) {
+                    if (linea.startsWith("FN:")) { textoLimpio = linea.substring(3).trim(); break; }
+                }
+            }
+            let textoBuscado = textoLimpio.toUpperCase();
+            for (let socio of sociosDb) {
+                const codigo = String(socio.codigo || "").toUpperCase();
+                const nombre = String(socio.nombre || "").toUpperCase();
+                if ((codigo && textoBuscado.includes(codigo)) || (nombre && textoBuscado.includes(nombre))) {
+                    return socio.rol === "CO-PILOTO"
+                        ? `COPILOTO | [${socio.codigo}] ${socio.nombre}`
+                        : `[${socio.codigo}] ${socio.nombre}`;
+                }
+            }
+            return textoLimpio; 
+        }
+
+        function registrarAsistencia(idSocio) {
+            let horaActual = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            if (!asistencia[idSocio]) { asistencia[idSocio] = ['', '', '', '', '']; }
+
+            let boxRes = document.getElementById('boxResultado');
+            let txtRes = document.getElementById('textoResultado');
+            let tituloRes = document.getElementById('tituloResultado');
+
+            if (asistencia[idSocio][etapaActual] === '') {
+                asistencia[idSocio][etapaActual] = horaActual;
+                guardarDatos();
+                actualizarTabla();
+                
+                boxRes.style.borderColor = '#4CAF50';
+                tituloRes.innerText = '✅ ASISTENCIA REGISTRADA';
+                tituloRes.style.color = '#4CAF50';
+                txtRes.innerText = idSocio;
+                
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                try { document.getElementById('beepScan').play(); } catch(e) {} 
+            } else {
+                boxRes.style.borderColor = '#121212';
+                tituloRes.innerText = '⚠️ YA ESTABA REGISTRADO';
+                tituloRes.style.color = '#121212';
+                txtRes.innerText = `${idSocio} (en esta etapa)`;
+                if (navigator.vibrate) navigator.vibrate(500); 
+            }
+
+            boxRes.style.display = 'block';
+            setTimeout(() => { boxRes.style.display = 'none'; }, 3000);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            html5QrcodeScanner.pause(true);
+            let idSocio = extraerNombreLimpio(decodedText);
+            registrarAsistencia(idSocio);
+            setTimeout(() => { html5QrcodeScanner.resume(); }, 1500);
+        }
+
+        function actualizarTabla() {
+            let tbody = document.getElementById('tablaBody');
+            tbody.innerHTML = '';
+            let contadorActual = 0;
+
+            for (let socio in asistencia) {
+                let datos = asistencia[socio];
+                let tr = document.createElement('tr');
+                
+                let tdNombre = document.createElement('td');
+                tdNombre.className = 'col-nombre';
+                tdNombre.innerText = socio;
+                tdNombre.onclick = function() { abrirModal(socio); };
+                tr.appendChild(tdNombre);
+
+                for (let i = 0; i < 5; i++) {
+                    let valor = datos[i];
+                    let td = document.createElement('td');
+                    td.innerText = valor;
+                    if (valor && valor !== 'NO') {
+                        td.className = 'presente col-hora'; 
+                        if (i === etapaActual) contadorActual++; 
+                    } else if (valor === 'NO') {
+                        td.className = 'ausente col-hora'; 
+                    } else {
+                        td.className = 'col-hora'; 
+                    }
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+            document.getElementById('contadorEtapa').innerText = `Escaneados en ${nombresEtapas[etapaActual]}: ${contadorActual}`;
+        }
+
+        function marcarAusentes() {
+            let confirmacion = confirm(`¿Cerrar la etapa "${nombresEtapas[etapaActual]}"? \nTodos los pilotos que no pasaron se marcarán en ROJO con falta (NO).`);
+            if (confirmacion) {
+                try { document.getElementById('beepCierre').play(); } catch(e) {}
+                for (let socio in asistencia) {
+                    if (asistencia[socio][etapaActual] === '') { asistencia[socio][etapaActual] = 'NO'; }
+                }
+                guardarDatos();
+                actualizarTabla();
+            }
+        }
+
+        function setEtapa(indice, idBoton) {
+            etapaActual = indice;
+            for(let i=0; i<5; i++) { document.getElementById('btnE'+i).classList.remove('activa'); }
+            document.getElementById(idBoton).classList.add('activa');
+            actualizarTabla(); 
+        }
+
+        function guardarDatos() { localStorage.setItem('zorros_asistencia', JSON.stringify(asistencia)); }
+
+        function nuevaRodada() {
+            if (confirm("⚠️ ¿Iniciar nueva rodada? \n\nEsto borrará TODA la lista actual de la pantalla para empezar un viaje de cero. \n\nAsegúrate de haber descargado el Excel primero.")) {
+                asistencia = {};
+                document.getElementById('nombreRodada').value = '';
+                localStorage.removeItem('zorros_asistencia');
+                localStorage.removeItem('zorros_titulo');
+                actualizarTabla();
+            }
+        }
+
+        function exportarExcelConFormato() {
+            const tituloRodada = document.getElementById('nombreRodada').value.trim() || 'Rodada sin nombre';
+            const wb = XLSX.utils.book_new();
+            const ws_data = [];
+            ws_data.push([tituloRodada, '', '', '', '', '']);
+            ws_data.push(['PLANILLA DE ASISTENCIA A LA RODADA', '', '', '', '', '']);
+            ws_data.push(['PERSONAS PRESENTES', ...nombresEtapas.map((_, i) => Object.values(asistencia).filter(d => d[i] && d[i] !== 'NO').length)]);
+            ws_data.push(['', '', '', '', '', '']);
+            ws_data.push(['Piloto / Copiloto', ...nombresEtapas]);
+            for (const socio in asistencia) {
+                const d = asistencia[socio];
+                ws_data.push([socio, d[0], d[1], d[2], d[3], d[4]]);
+            }
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            ws['!merges'] = [
+                {s:{r:0,c:0},e:{r:0,c:5}},
+                {s:{r:1,c:0},e:{r:1,c:5}}
+            ];
+            ws['!cols'] = [{wch:32},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18}];
+            ws['!rows'] = [{hpt:32},{hpt:22},{hpt:24},{hpt:8}];
+            // Estilos de título, subtítulo y contador (compatibles con Excel que admita estilos SheetJS).
+            if (ws['A1']) ws['A1'].s = {font:{bold:true,sz:20},alignment:{horizontal:'center',vertical:'center'}};
+            if (ws['A2']) ws['A2'].s = {font:{bold:true,sz:12},alignment:{horizontal:'center',vertical:'center'}};
+            for (let c=0;c<6;c++) {
+                const celda = XLSX.utils.encode_cell({r:2,c});
+                if (ws[celda]) ws[celda].s = {font:{bold:true,sz:12},alignment:{horizontal:c===0?'left':'center',vertical:'center'}};
+                const encabezado = XLSX.utils.encode_cell({r:4,c});
+                if (ws[encabezado]) ws[encabezado].s = {font:{bold:true},alignment:{horizontal:'center',vertical:'center'}};
+            }
+            XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
+            let nombreArchivo = tituloRodada.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'asistencia_zorros';
+            XLSX.writeFile(wb, `${nombreArchivo}.xlsx`);
+        }
+
+        document.getElementById('btnIniciar').onclick = () => {
+            document.getElementById('reader').innerText = ''; 
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, 
+                onScanSuccess
+            ).then(() => {
+                document.getElementById('btnIniciar').style.display = 'none';
+                document.getElementById('btnDetener').style.display = 'block';
+            }).catch(err => {
+                alert("Debes dar permisos de cámara a tu navegador web para poder escanear.");
+            });
+        };
+
+        document.getElementById('btnDetener').onclick = () => {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('btnIniciar').style.display = 'block';
+                document.getElementById('btnDetener').style.display = 'none';
+                document.getElementById('reader').innerHTML = 'Cámara apagada. Ahorrando batería 🔋';
+            });
+        };
+
+        window.onload = async () => {
+            aplicarNombresUI();
+            await cargarBaseDeDatos();
+            actualizarTabla();
+            html5QrcodeScanner = new Html5Qrcode("reader");
+        };
+    </script>
+
+<!-- Acceso de sesión: agregado sin modificar las funciones existentes de la aplicación -->
+<style>
+  #zda-logout {
+    position: fixed; z-index: 99999; top: 10px; right: 10px;
+    border: 2px solid #121212; border-radius: 999px; padding: 10px 14px;
+    background: #121212; color: #ff6600; font-weight: 900; cursor: pointer;
+    box-shadow: 0 3px 12px rgba(0,0,0,.28); font-size: 13px;
+  }
+  #zda-logout:hover { background: #292929; }
+  @media (max-width: 520px) { #zda-logout { top: 6px; right: 6px; padding: 8px 10px; font-size: 12px; } }
+</style>
+<form method="post" action="/logout" style="margin:0">
+  <button id="zda-logout" type="submit" aria-label="Cerrar sesión">CERRAR SESIÓN ↗</button>
+</form>
+
+</body>
+</html>
